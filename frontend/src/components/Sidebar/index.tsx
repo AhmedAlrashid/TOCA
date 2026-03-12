@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link, useLocation } from 'react-router-dom';
 import NAV from "./nav";
 import styles from "../../styles/sidebar";
 
@@ -16,32 +17,30 @@ function NavLink({ link, active }: { link: NavLinkType; active: boolean }) {
   };
 
   return (
-    <a
-      href={link.href}
-      style={style}
+    <Link
+      to={link.href}
+      style={{
+        ...style,
+        textDecoration: 'none',
+        color: 'inherit'
+      }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       aria-current={active ? "page" : undefined}
     >
       <span style={{ flex: 1 }}>{link.label}</span>
-    </a>
+    </Link>
   );
 }
 
 export default function Sidebar({
   sections = NAV,
-  currentPath = "/",
   user = { name: "Ahmed K.", email: "ahmed@toca.com" },
-  header = null,  onNavigate,
-}: {
-  sections?: typeof NAV;
-  currentPath?: string;
-  user?: { name: string; email: string } | null;
-  header?: React.ReactNode;
-  onNavigate?: (path: string) => void;}) {
+  header = null,
+}) {
+  const { pathname } = useLocation();
   return (
     <aside style={styles.sidebar}>
-      {/* Header */}
       <div>
         <div style={styles.header}>
           {header ?? (
@@ -57,7 +56,6 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* Nav */}
         <nav style={styles.nav}>
           {sections.map((sec, i) => (
             <div key={i}>
@@ -66,7 +64,7 @@ export default function Sidebar({
                 <NavLink
                   key={link.href}
                   link={link}
-                  active={currentPath === link.href}
+                  active={pathname === link.href}
                 />
               ))}
             </div>
@@ -74,7 +72,6 @@ export default function Sidebar({
         </nav>
       </div>
 
-      {/* Footer */}
       {user && (
         <div style={styles.footer}>
           <div style={styles.avatar}>
