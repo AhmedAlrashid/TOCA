@@ -1,4 +1,5 @@
 import React from 'react';
+import { usePopover, type TrainingSession } from '../core/Popover';
 
 type TrainerSessionProps = {
   trainerName: string;
@@ -23,6 +24,51 @@ const TrainerSession: React.FC<TrainerSessionProps> = ({
   showPastSessions = false,
   pastSessions = []
 }) => {
+  const { openSessionPopover } = usePopover();
+
+  // Sample training sessions data - in a real app, this would come from your API
+  const sampleTrainingSessions: TrainingSession[] = [
+    {
+      id: "008bfbdd-7914-4488-bf3a-915d998119f1",
+      playerId: "47cb55dd-134d-459b-8892-bbba4f512399",
+      trainerName: "Trainer Lisa",
+      startTime: "2025-12-30T11:00:00Z",
+      endTime: "2025-12-30T12:00:00Z",
+      numberOfBalls: 153,
+      bestStreak: 42,
+      numberOfGoals: 60,
+      score: 73.4,
+      avgSpeedOfPlay: 3.68,
+      numberOfExercises: 8
+    },
+    {
+      id: "0560bf11-1253-412e-bde2-1004aae842f2",
+      playerId: "47cb55dd-134d-459b-8892-bbba4f512399",
+      trainerName: "Coach Mike",
+      startTime: "2025-12-24T06:00:00Z",
+      endTime: "2025-12-24T07:00:00Z",
+      numberOfBalls: 121,
+      bestStreak: 27,
+      numberOfGoals: 40,
+      score: 95.5,
+      avgSpeedOfPlay: 5.06,
+      numberOfExercises: 8
+    },
+    {
+      id: "783adad2-e377-40bb-bd81-50326cec3d7a",
+      playerId: "47cb55dd-134d-459b-8892-bbba4f512399",
+      trainerName: "Coach David",
+      startTime: "2026-01-05T04:00:00Z",
+      endTime: "2026-01-05T05:00:00Z",
+      numberOfBalls: 137,
+      bestStreak: 16,
+      numberOfGoals: 47,
+      score: 93.9,
+      avgSpeedOfPlay: 3.91,
+      numberOfExercises: 11
+    },
+  ];
+
   const formatTime = (timeString: string) => {
     return new Date(timeString).toLocaleTimeString('en-US', { 
       hour: 'numeric', 
@@ -45,6 +91,13 @@ const TrainerSession: React.FC<TrainerSessionProps> = ({
       case 'pending': return '#ffc107';
       case 'cancelled': return '#dc3545';
       default: return '#6c757d';
+    }
+  };
+
+  const handleViewSession = (sessionId: string) => {
+    const session = sampleTrainingSessions.find(s => s.id === sessionId);
+    if (session) {
+      openSessionPopover(session);
     }
   };
 
@@ -156,17 +209,20 @@ const TrainerSession: React.FC<TrainerSessionProps> = ({
                   </div>
                 </div>
                 
-                <button style={{
-                  backgroundColor: '#495057',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '20px',
-                  padding: '6px 16px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  marginLeft: '15px'
-                }}>
+                <button 
+                  onClick={() => handleViewSession(session.id)}
+                  style={{
+                    backgroundColor: '#495057',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '20px',
+                    padding: '6px 16px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    marginLeft: '15px'
+                  }}
+                >
                   View
                 </button>
               </div>
