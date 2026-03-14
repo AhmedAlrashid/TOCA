@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getPlayerAverages, type PlayerAverages } from "../../../api/profile";
 
 // Types for training session data  
 type TrainingSession = {
@@ -123,6 +124,15 @@ const ComparisonBar = ({ label, value, playerAvg, unit }: { label: string; value
 
 // Session Popover Component
 function SessionPopover({ session, onClose }: SessionPopoverProps) {
+  const [playerAverages, setPlayerAverages] = useState<PlayerAverages | null>(null);
+
+  useEffect(() => {
+    getPlayerAverages(session.playerId)
+      .then((result) => {
+        if (result.success) setPlayerAverages(result.data);
+      })
+      .catch(() => { /* averages unavailable */ });
+  }, [session.playerId]);
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#fff" }}>
       {/* Header */}
@@ -177,7 +187,6 @@ function SessionPopover({ session, onClose }: SessionPopoverProps) {
           </div>
         </div>
 
-        {/* Speed of Play - Full Width */}
         <div style={{ marginBottom: 48 }}>
           <p style={{ margin: 0, fontSize: 11, color: "#9aa0ad", fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 8 }}>AVG SPEED OF PLAY</p>
           <p style={{ margin: 0, fontSize: 48, fontWeight: 700, fontFamily: "'Sora', sans-serif", color: "#1a1d23" }}>
@@ -185,13 +194,12 @@ function SessionPopover({ session, onClose }: SessionPopoverProps) {
           </p>
         </div>
 
-        {/* VS Player Average - Mock data for now */}
         <div>
           <h3 style={{ margin: "0 0 20px", fontSize: 11, color: "#9aa0ad", fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.05em", textTransform: "uppercase" }}>VS. PLAYER AVERAGE</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <ComparisonBar label="Goals" value={session.numberOfGoals} playerAvg={34.2} />
-            <ComparisonBar label="Streak" value={session.bestStreak} playerAvg={21} />
-            <ComparisonBar label="Speed" value={session.avgSpeedOfPlay} playerAvg={4.4} unit="m/s" />
+            <ComparisonBar label="Goals" value={session.numberOfGoals} playerAvg={playerAverages?.avgNumberOfGoals ?? 0} />
+            <ComparisonBar label="Streak" value={session.bestStreak} playerAvg={playerAverages?.avgBestStreak ?? 0} />
+            <ComparisonBar label="Speed" value={session.avgSpeedOfPlay} playerAvg={playerAverages?.avgSpeedOfPlay ?? 0} unit="m/s" />
           </div>
         </div>
       </div>

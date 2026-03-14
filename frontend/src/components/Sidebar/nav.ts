@@ -2,7 +2,7 @@ const NAV = [
   {
     title: null,
     links: [
-      { href: "/", label: "Home"},
+      { href: "/home", label: "Home"},
       { href: "/about", label: "About TOCA"},
     ],
   },
