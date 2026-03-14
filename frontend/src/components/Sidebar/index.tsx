@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import NAV from "./nav";
 import styles from "../../styles/sidebar";
 
@@ -35,10 +36,17 @@ function NavLink({ link, active }: { link: NavLinkType; active: boolean }) {
 
 export default function Sidebar({
   sections = NAV,
-  user = { name: "Ahmed K.", email: "ahmed@toca.com" },
   header = null,
 }) {
   const { pathname } = useLocation();
+  const { currentUser, setCurrentUser } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    navigate('/login');
+  };
+
   return (
     <aside style={styles.sidebar}>
       <div>
@@ -72,18 +80,31 @@ export default function Sidebar({
         </nav>
       </div>
 
-      {user && (
+      {currentUser && (
         <div style={styles.footer}>
           <div style={styles.avatar}>
-            {user.name?.charAt(0).toUpperCase()}
+            {currentUser?.charAt(0).toUpperCase()}
           </div>
-          <div style={{ overflow: "hidden" }}>
+          <div style={{ overflow: "hidden", flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {user.name}
+              {currentUser}
             </div>
-            <div style={{ fontSize: 11, color: "#aaa", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {user.email}
-            </div>
+            <button
+              onClick={handleLogout}
+              style={{ 
+                fontSize: 11, 
+                color: "#dc3545", 
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+                textDecoration: 'underline'
+              }}
+              onMouseEnter={(e) => (e.target as HTMLElement).style.color = "#b02a37"}
+              onMouseLeave={(e) => (e.target as HTMLElement).style.color = "#dc3545"}
+            >
+              Logout
+            </button>
           </div>
         </div>
       )}

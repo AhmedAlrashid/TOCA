@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePopover, type TrainingSession } from '../core/Popover';
 
 type TrainerSessionProps = {
@@ -7,13 +7,8 @@ type TrainerSessionProps = {
   endTime: string;
   status: 'confirmed' | 'pending' | 'cancelled';
   showPastSessions?: boolean;
-  pastSessions?: Array<{
-    id: string;
-    trainerName: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-  }>;
+  pastSessions?: TrainingSession[];
+  playerName?: string;
 };
 
 const TrainerSession: React.FC<TrainerSessionProps> = ({ 
@@ -22,52 +17,26 @@ const TrainerSession: React.FC<TrainerSessionProps> = ({
   endTime, 
   status,
   showPastSessions = false,
-  pastSessions = []
+  pastSessions = [],
+  playerName
 }) => {
   const { openSessionPopover } = usePopover();
+  const [isExpanded, setIsExpanded] = useState(true);
 
-  // Sample training sessions data - in a real app, this would come from your API
-  const sampleTrainingSessions: TrainingSession[] = [
-    {
-      id: "008bfbdd-7914-4488-bf3a-915d998119f1",
-      playerId: "47cb55dd-134d-459b-8892-bbba4f512399",
-      trainerName: "Trainer Lisa",
-      startTime: "2025-12-30T11:00:00Z",
-      endTime: "2025-12-30T12:00:00Z",
-      numberOfBalls: 153,
-      bestStreak: 42,
-      numberOfGoals: 60,
-      score: 73.4,
-      avgSpeedOfPlay: 3.68,
-      numberOfExercises: 8
-    },
-    {
-      id: "0560bf11-1253-412e-bde2-1004aae842f2",
-      playerId: "47cb55dd-134d-459b-8892-bbba4f512399",
-      trainerName: "Coach Mike",
-      startTime: "2025-12-24T06:00:00Z",
-      endTime: "2025-12-24T07:00:00Z",
-      numberOfBalls: 121,
-      bestStreak: 27,
-      numberOfGoals: 40,
-      score: 95.5,
-      avgSpeedOfPlay: 5.06,
-      numberOfExercises: 8
-    },
-    {
-      id: "783adad2-e377-40bb-bd81-50326cec3d7a",
-      playerId: "47cb55dd-134d-459b-8892-bbba4f512399",
-      trainerName: "Coach David",
-      startTime: "2026-01-05T04:00:00Z",
-      endTime: "2026-01-05T05:00:00Z",
-      numberOfBalls: 137,
-      bestStreak: 16,
-      numberOfGoals: 47,
-      score: 93.9,
-      avgSpeedOfPlay: 3.91,
-      numberOfExercises: 11
-    },
-  ];
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  // Handle viewing a session - now using data directly instead of API call
+  const handleViewSession = (sessionId: string) => {
+    // Find the session in the pastSessions array (which now contains full session data)
+    const session = pastSessions.find(s => s.id === sessionId);
+    if (session) {
+      openSessionPopover(session);
+    } else {
+      console.error('Session not found:', sessionId);
+    }
+  };
 
   const formatTime = (timeString: string) => {
     return new Date(timeString).toLocaleTimeString('en-US', { 
@@ -94,13 +63,6 @@ const TrainerSession: React.FC<TrainerSessionProps> = ({
     }
   };
 
-  const handleViewSession = (sessionId: string) => {
-    const session = sampleTrainingSessions.find(s => s.id === sessionId);
-    if (session) {
-      openSessionPopover(session);
-    }
-  };
-
   return (
     <div style={{
       backgroundColor: '#f8f9fa',
@@ -108,7 +70,7 @@ const TrainerSession: React.FC<TrainerSessionProps> = ({
       borderRadius: '12px',
       padding: '24px',
       width: '100%',
-      fontFamily: "'DM Sans', sans-serif"
+      maxWidth: '1300px',
     }}>
       {/* Current Session */}
       <div style={{
@@ -140,7 +102,7 @@ const TrainerSession: React.FC<TrainerSessionProps> = ({
             fontWeight: 600,
             color: '#212529'
           }}>
-            {trainerName}
+            {playerName ? `Session with ${playerName}` : trainerName}
           </h3>
           
           <div style={{ 
@@ -169,65 +131,89 @@ const TrainerSession: React.FC<TrainerSessionProps> = ({
       {/* Past Sessions */}
       {showPastSessions && pastSessions.length > 0 && (
         <div>
-          <div style={{
-            fontSize: '14px',
-            color: '#6c757d',
-            marginBottom: '15px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <span>Past sessions with {trainerName.replace('Trainer ', '')}</span>
-            <span style={{ fontSize: '12px' }}>▼</span>
+          <div 
+            onClick={toggleExpanded}
+            style={{
+              fontSize: '14px',
+              color: '#6c757d',
+              marginBottom: '15px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              userSelect: 'none',
+              padding: '5px 0',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s',
+            }}
+            onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#f1f3f4'}
+            onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = 'transparent'}
+          >
+            <span>
+              {playerName 
+                ? `${playerName}'s session history` 
+                : `Past sessions with ${trainerName.replace('Trainer ', '')}`
+              }
+            </span>
+            <span style={{ 
+              fontSize: '12px',
+              transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.2s ease',
+              display: 'inline-block'
+            }}>
+              ▼
+            </span>
           </div>
 
-          {/* Horizontal Scroll Container */}
-          <div style={{
-            display: 'flex',
-            gap: '12px',
-            overflowX: 'auto',
-            paddingBottom: '10px'
-          }}>
-            {pastSessions.map((session) => (
-              <div key={session.id} style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 15px',
-                backgroundColor: 'white',
-                borderRadius: '8px',
-                border: '1px solid #e9ecef',
-                minWidth: '280px',
-                flexShrink: 0
-              }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '14px', color: '#212529' }}>
-                    {session.trainerName}
+          {/* Horizontal Scroll Container - Only show when expanded */}
+          {isExpanded && (
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              overflowX: 'auto',
+              paddingBottom: '10px'
+            }}>
+              {pastSessions.map((session) => (
+                <div key={session.id} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 15px',
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  border: '1px solid #e9ecef',
+                  minWidth: '280px',
+                  flexShrink: 0
+                }}>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '14px', color: '#212529' }}>
+                      {session.trainerName}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#6c757d' }}>
+                      {formatDate(session.startTime)} · {formatTime(session.startTime)}-{formatTime(session.endTime)}
+                    </div>
                   </div>
-                  <div style={{ fontSize: '12px', color: '#6c757d' }}>
-                    {formatDate(session.date)} · {formatTime(session.startTime)}-{formatTime(session.endTime)}
-                  </div>
+                  
+                  <button 
+                    onClick={() => handleViewSession(session.id)}
+                    style={{
+                      backgroundColor: '#495057',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '20px',
+                      padding: '6px 16px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      marginLeft: '15px'
+                    }}
+                  >
+                    View
+                  </button>
                 </div>
-                
-                <button 
-                  onClick={() => handleViewSession(session.id)}
-                  style={{
-                    backgroundColor: '#495057',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '20px',
-                    padding: '6px 16px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    marginLeft: '15px'
-                  }}
-                >
-                  View
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
